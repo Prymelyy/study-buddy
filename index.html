@@ -1,1 +1,605 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Study Buddy? 📚</title>
+<link href="https://fonts.googleapis.com/css2?family=Fredoka+One&family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
 
+  body {
+    min-height: 100vh;
+    background: linear-gradient(135deg, #ffd6e7 0%, #ffb3c6 30%, #ff85a1 60%, #ffc2d4 100%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: 'Nunito', sans-serif;
+    overflow: hidden;
+    position: relative;
+  }
+
+  /* Floating hearts background */
+  .bg-hearts {
+    position: fixed;
+    top: 0; left: 0; right: 0; bottom: 0;
+    pointer-events: none;
+    z-index: 0;
+  }
+  .bg-heart {
+    position: absolute;
+    font-size: 20px;
+    animation: floatUp linear infinite;
+    opacity: 0.3;
+  }
+
+  @keyframes floatUp {
+    0% { transform: translateY(110vh) rotate(0deg); opacity: 0.3; }
+    100% { transform: translateY(-10vh) rotate(360deg); opacity: 0; }
+  }
+
+  /* Main card */
+  .card {
+    position: relative;
+    z-index: 10;
+    background: rgba(255,255,255,0.25);
+    backdrop-filter: blur(10px);
+    border-radius: 30px;
+    padding: 40px 35px 45px;
+    text-align: center;
+    box-shadow: 0 20px 60px rgba(220, 80, 100, 0.25), 0 0 0 1px rgba(255,255,255,0.4);
+    max-width: 380px;
+    width: 90%;
+  }
+
+  /* Sparkles */
+  .sparkles {
+    position: absolute;
+    top: 0; left: 0; right: 0; bottom: 0;
+    pointer-events: none;
+    border-radius: 30px;
+    overflow: hidden;
+  }
+  .sparkle {
+    position: absolute;
+    width: 6px; height: 6px;
+    background: white;
+    border-radius: 50%;
+    animation: twinkle 2s ease-in-out infinite;
+  }
+
+  @keyframes twinkle {
+    0%, 100% { opacity: 0; transform: scale(0); }
+    50% { opacity: 1; transform: scale(1); }
+  }
+
+  .title {
+    font-family: 'Fredoka One', cursive;
+    font-size: 2rem;
+    color: #c0154a;
+    margin-bottom: 8px;
+    text-shadow: 2px 2px 0px rgba(255,255,255,0.5);
+    line-height: 1.2;
+  }
+
+  .subtitle {
+    font-size: 0.85rem;
+    color: #e05070;
+    margin-bottom: 20px;
+    font-weight: 600;
+  }
+
+  /* Mascot */
+  .mascot-container {
+    position: relative;
+    margin: 0 auto 25px;
+    width: 130px;
+    height: 130px;
+  }
+
+  .mascot {
+    width: 130px;
+    height: 130px;
+    transition: all 0.3s ease;
+  }
+
+  /* Buttons area */
+  .buttons {
+    display: flex;
+    gap: 14px;
+    justify-content: center;
+    align-items: center;
+    flex-wrap: wrap;
+    min-height: 60px;
+  }
+
+  .btn-yes {
+    background: linear-gradient(135deg, #4caf50, #2e7d32);
+    color: white;
+    border: none;
+    border-radius: 16px;
+    padding: 14px 32px;
+    font-family: 'Fredoka One', cursive;
+    font-size: 1.4rem;
+    cursor: pointer;
+    box-shadow: 0 6px 20px rgba(46,125,50,0.4), 0 2px 0px #1b5e20;
+    transition: all 0.15s ease;
+    transform: translateY(0);
+    letter-spacing: 1px;
+  }
+
+  .btn-yes:hover { transform: translateY(-3px); box-shadow: 0 10px 25px rgba(46,125,50,0.5); }
+  .btn-yes:active { transform: translateY(1px); }
+
+  .btn-yes.bigger { animation: growBtn 0.4s ease forwards; }
+
+  @keyframes growBtn {
+    0% { transform: scale(1); }
+    50% { transform: scale(1.15); }
+    100% { transform: scale(var(--scale)); }
+  }
+
+  .btn-no {
+    background: linear-gradient(135deg, #c0392b, #922b21);
+    color: white;
+    border: none;
+    border-radius: 12px;
+    padding: 10px 18px;
+    font-family: 'Nunito', sans-serif;
+    font-size: 0.85rem;
+    font-weight: 700;
+    cursor: pointer;
+    box-shadow: 0 4px 12px rgba(146,43,33,0.4);
+    transition: all 0.2s ease;
+    position: relative;
+    white-space: nowrap;
+    max-width: 180px;
+  }
+
+  .btn-no:hover { filter: brightness(1.1); }
+
+  /* Moving no button */
+  .btn-no.moving {
+    position: fixed;
+    z-index: 9999;
+    transition: none;
+  }
+
+  /* Success screen */
+  .success-screen {
+    display: none;
+    flex-direction: column;
+    align-items: center;
+    gap: 12px;
+  }
+
+  .success-screen.show { display: flex; }
+
+  .success-title {
+    font-family: 'Fredoka One', cursive;
+    font-size: 2rem;
+    color: #c0154a;
+    text-align: center;
+  }
+
+  .success-subtitle {
+    font-size: 0.9rem;
+    color: #e05070;
+    font-weight: 700;
+    text-align: center;
+  }
+
+  .confetti-emoji {
+    font-size: 3rem;
+    animation: bounce 0.6s ease infinite alternate;
+  }
+
+  @keyframes bounce {
+    from { transform: translateY(0) scale(1); }
+    to { transform: translateY(-10px) scale(1.1); }
+  }
+
+  /* Wobble mascot on no click */
+  @keyframes wobble {
+    0%,100% { transform: rotate(0); }
+    20% { transform: rotate(-10deg); }
+    40% { transform: rotate(10deg); }
+    60% { transform: rotate(-8deg); }
+    80% { transform: rotate(8deg); }
+  }
+
+  .wobble { animation: wobble 0.5s ease; }
+
+  /* Mascot expressions as SVG inline */
+  .mascot-svg { width: 130px; height: 130px; }
+
+  /* Floating confetti on success */
+  .confetti-particle {
+    position: fixed;
+    width: 10px;
+    height: 10px;
+    border-radius: 2px;
+    animation: confettiFall 2s ease-in forwards;
+    z-index: 9999;
+    pointer-events: none;
+  }
+
+  @keyframes confettiFall {
+    0% { transform: translateY(-20px) rotate(0deg); opacity: 1; }
+    100% { transform: translateY(110vh) rotate(720deg); opacity: 0; }
+  }
+
+  /* No button shake when trying last */
+  @keyframes shake {
+    0%,100% { transform: translateX(0); }
+    20% { transform: translateX(-8px); }
+    40% { transform: translateX(8px); }
+    60% { transform: translateX(-6px); }
+    80% { transform: translateX(6px); }
+  }
+  .shake { animation: shake 0.4s ease; }
+</style>
+</head>
+<body>
+
+<!-- Background floating hearts -->
+<div class="bg-hearts" id="bgHearts"></div>
+
+<!-- Main card -->
+<div class="card" id="mainCard">
+  <div class="sparkles" id="sparkles"></div>
+
+  <!-- Question screen -->
+  <div id="questionScreen">
+    <div class="title">Will you be my<br>Study Buddy? 📚✨</div>
+    <div class="subtitle">we could be unstoppable together~</div>
+
+    <div class="mascot-container">
+      <div id="mascot">
+        <!-- Default cute bear face SVG -->
+        <svg class="mascot-svg" viewBox="0 0 130 130" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <!-- Body -->
+          <ellipse cx="65" cy="85" rx="38" ry="32" fill="#f5e6d3"/>
+          <!-- Head -->
+          <circle cx="65" cy="55" r="35" fill="#f5e6d3"/>
+          <!-- Ears -->
+          <circle cx="35" cy="28" r="14" fill="#f5e6d3"/>
+          <circle cx="95" cy="28" r="14" fill="#f5e6d3"/>
+          <circle cx="35" cy="28" r="8" fill="#f0c8b0"/>
+          <circle cx="95" cy="28" r="8" fill="#f0c8b0"/>
+          <!-- Eyes open happy -->
+          <ellipse id="leftEye" cx="52" cy="52" rx="5" ry="5.5" fill="#3d2b1f"/>
+          <ellipse id="rightEye" cx="78" cy="52" rx="5" ry="5.5" fill="#3d2b1f"/>
+          <!-- Eye shine -->
+          <circle cx="54" cy="50" r="2" fill="white"/>
+          <circle cx="80" cy="50" r="2" fill="white"/>
+          <!-- Blush -->
+          <ellipse cx="45" cy="62" rx="8" ry="5" fill="#ffb3c1" opacity="0.7"/>
+          <ellipse cx="85" cy="62" rx="8" ry="5" fill="#ffb3c1" opacity="0.7"/>
+          <!-- Nose -->
+          <ellipse cx="65" cy="64" rx="4" ry="2.5" fill="#c97b63"/>
+          <!-- Mouth happy -->
+          <path id="mouthPath" d="M57 70 Q65 78 73 70" stroke="#c97b63" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+          <!-- Book in arms -->
+          <rect x="40" y="95" width="50" height="35" rx="4" fill="#7ec8e3"/>
+          <rect x="40" y="95" width="5" height="35" rx="2" fill="#5ba3bd"/>
+          <line x1="50" y1="103" x2="83" y2="103" stroke="white" stroke-width="2" opacity="0.6"/>
+          <line x1="50" y1="110" x2="83" y2="110" stroke="white" stroke-width="2" opacity="0.6"/>
+          <line x1="50" y1="117" x2="70" y2="117" stroke="white" stroke-width="2" opacity="0.6"/>
+          <!-- Paws on book -->
+          <ellipse cx="46" cy="94" rx="9" ry="7" fill="#f5e6d3"/>
+          <ellipse cx="84" cy="94" rx="9" ry="7" fill="#f5e6d3"/>
+        </svg>
+      </div>
+    </div>
+
+    <div class="buttons" id="buttonsArea">
+      <button class="btn-yes" id="yesBtn" onclick="handleYes()">Yes! 🎉</button>
+      <button class="btn-no" id="noBtn" onclick="handleNo()">No</button>
+    </div>
+  </div>
+
+  <!-- Success screen -->
+  <div class="success-screen" id="successScreen">
+    <div class="confetti-emoji">🎊</div>
+    <div class="success-title">Yay!! Study buddies!! 📚💕</div>
+    <svg class="mascot-svg" viewBox="0 0 130 130" fill="none" style="width:140px;height:140px">
+      <ellipse cx="65" cy="85" rx="38" ry="32" fill="#f5e6d3"/>
+      <circle cx="65" cy="55" r="35" fill="#f5e6d3"/>
+      <circle cx="35" cy="28" r="14" fill="#f5e6d3"/>
+      <circle cx="95" cy="28" r="14" fill="#f5e6d3"/>
+      <circle cx="35" cy="28" r="8" fill="#f0c8b0"/>
+      <circle cx="95" cy="28" r="8" fill="#f0c8b0"/>
+      <!-- Happy closed eyes -->
+      <path d="M46 52 Q52 46 58 52" stroke="#3d2b1f" stroke-width="3" fill="none" stroke-linecap="round"/>
+      <path d="M72 52 Q78 46 84 52" stroke="#3d2b1f" stroke-width="3" fill="none" stroke-linecap="round"/>
+      <ellipse cx="45" cy="62" rx="9" ry="6" fill="#ffb3c1" opacity="0.8"/>
+      <ellipse cx="85" cy="62" rx="9" ry="6" fill="#ffb3c1" opacity="0.8"/>
+      <ellipse cx="65" cy="64" rx="4" ry="2.5" fill="#c97b63"/>
+      <path d="M55 70 Q65 80 75 70" stroke="#c97b63" stroke-width="3" fill="none" stroke-linecap="round"/>
+      <!-- Stars around -->
+      <text x="8" y="30" font-size="18">⭐</text>
+      <text x="100" y="25" font-size="14">✨</text>
+      <text x="5" y="75" font-size="12">💫</text>
+      <text x="108" y="70" font-size="16">⭐</text>
+      <!-- Book raised up happy -->
+      <rect x="35" y="92" width="60" height="38" rx="4" fill="#7ec8e3"/>
+      <rect x="35" y="92" width="6" height="38" rx="2" fill="#5ba3bd"/>
+      <line x1="47" y1="102" x2="87" y2="102" stroke="white" stroke-width="2" opacity="0.6"/>
+      <line x1="47" y1="110" x2="87" y2="110" stroke="white" stroke-width="2" opacity="0.6"/>
+      <line x1="47" y1="118" x2="70" y2="118" stroke="white" stroke-width="2" opacity="0.6"/>
+      <ellipse cx="42" cy="91" rx="10" ry="7" fill="#f5e6d3"/>
+      <ellipse cx="88" cy="91" rx="10" ry="7" fill="#f5e6d3"/>
+    </svg>
+    <div class="success-subtitle">You just made me the happiest study bear! 🐻💕<br>Let's ace everything together~</div>
+  </div>
+</div>
+
+<script>
+  let noClickCount = 0;
+  let yesScale = 1;
+  let moveTrials = 0;
+  const maxMoveTrials = 2;
+
+  // No button sequence
+  const noTexts = [
+    "No",
+    "Are you sure? 🥺",
+    "pookie please... 😢",
+    "I'll share my notes & snacks 🍪",
+    "Are you positive? 🙏",
+    "We can solve tough problems together 💪",
+    "Last chance...!! 😭"
+  ];
+
+  // Mascot SVG faces for different emotions
+  const mascotFaces = {
+    normal: `<svg class="mascot-svg" viewBox="0 0 130 130" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <ellipse cx="65" cy="85" rx="38" ry="32" fill="#f5e6d3"/>
+      <circle cx="65" cy="55" r="35" fill="#f5e6d3"/>
+      <circle cx="35" cy="28" r="14" fill="#f5e6d3"/>
+      <circle cx="95" cy="28" r="14" fill="#f5e6d3"/>
+      <circle cx="35" cy="28" r="8" fill="#f0c8b0"/>
+      <circle cx="95" cy="28" r="8" fill="#f0c8b0"/>
+      <ellipse cx="52" cy="52" rx="5" ry="5.5" fill="#3d2b1f"/>
+      <ellipse cx="78" cy="52" rx="5" ry="5.5" fill="#3d2b1f"/>
+      <circle cx="54" cy="50" r="2" fill="white"/>
+      <circle cx="80" cy="50" r="2" fill="white"/>
+      <ellipse cx="45" cy="62" rx="8" ry="5" fill="#ffb3c1" opacity="0.7"/>
+      <ellipse cx="85" cy="62" rx="8" ry="5" fill="#ffb3c1" opacity="0.7"/>
+      <ellipse cx="65" cy="64" rx="4" ry="2.5" fill="#c97b63"/>
+      <path d="M57 70 Q65 78 73 70" stroke="#c97b63" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+      <rect x="40" y="95" width="50" height="35" rx="4" fill="#7ec8e3"/>
+      <rect x="40" y="95" width="5" height="35" rx="2" fill="#5ba3bd"/>
+      <ellipse cx="46" cy="94" rx="9" ry="7" fill="#f5e6d3"/>
+      <ellipse cx="84" cy="94" rx="9" ry="7" fill="#f5e6d3"/>
+    </svg>`,
+    sad: `<svg class="mascot-svg" viewBox="0 0 130 130" fill="none">
+      <ellipse cx="65" cy="85" rx="38" ry="32" fill="#f5e6d3"/>
+      <circle cx="65" cy="55" r="35" fill="#f5e6d3"/>
+      <circle cx="35" cy="28" r="14" fill="#f5e6d3"/>
+      <circle cx="95" cy="28" r="14" fill="#f5e6d3"/>
+      <circle cx="35" cy="28" r="8" fill="#f0c8b0"/>
+      <circle cx="95" cy="28" r="8" fill="#f0c8b0"/>
+      <!-- Sad watery eyes -->
+      <ellipse cx="52" cy="54" rx="6" ry="7" fill="#7ec8f5"/>
+      <ellipse cx="78" cy="54" rx="6" ry="7" fill="#7ec8f5"/>
+      <ellipse cx="52" cy="54" rx="5" ry="5.5" fill="#3d2b1f"/>
+      <ellipse cx="78" cy="54" rx="5" ry="5.5" fill="#3d2b1f"/>
+      <circle cx="54" cy="52" r="2" fill="white"/>
+      <circle cx="80" cy="52" r="2" fill="white"/>
+      <!-- Tears -->
+      <ellipse cx="47" cy="66" rx="3" ry="5" fill="#7ec8f5" opacity="0.8"/>
+      <ellipse cx="83" cy="66" rx="3" ry="5" fill="#7ec8f5" opacity="0.8"/>
+      <ellipse cx="45" cy="63" rx="8" ry="5" fill="#ffb3c1" opacity="0.9"/>
+      <ellipse cx="85" cy="63" rx="8" ry="5" fill="#ffb3c1" opacity="0.9"/>
+      <ellipse cx="65" cy="66" rx="4" ry="2.5" fill="#c97b63"/>
+      <!-- Sad mouth -->
+      <path d="M57 74 Q65 68 73 74" stroke="#c97b63" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+      <!-- Eyebrows sad -->
+      <path d="M46 44 Q52 40 58 44" stroke="#3d2b1f" stroke-width="2" fill="none" stroke-linecap="round"/>
+      <path d="M72 44 Q78 40 84 44" stroke="#3d2b1f" stroke-width="2" fill="none" stroke-linecap="round"/>
+      <rect x="40" y="95" width="50" height="35" rx="4" fill="#7ec8e3"/>
+      <rect x="40" y="95" width="5" height="35" rx="2" fill="#5ba3bd"/>
+      <ellipse cx="46" cy="94" rx="9" ry="7" fill="#f5e6d3"/>
+      <ellipse cx="84" cy="94" rx="9" ry="7" fill="#f5e6d3"/>
+    </svg>`,
+    cry: `<svg class="mascot-svg" viewBox="0 0 130 130" fill="none">
+      <ellipse cx="65" cy="85" rx="38" ry="32" fill="#f5e6d3"/>
+      <circle cx="65" cy="55" r="35" fill="#f5e6d3"/>
+      <circle cx="35" cy="28" r="14" fill="#f5e6d3"/>
+      <circle cx="95" cy="28" r="14" fill="#f5e6d3"/>
+      <circle cx="35" cy="28" r="8" fill="#f0c8b0"/>
+      <circle cx="95" cy="28" r="8" fill="#f0c8b0"/>
+      <!-- Crying squint eyes -->
+      <path d="M46 52 Q52 58 58 52" stroke="#3d2b1f" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+      <path d="M72 52 Q78 58 84 52" stroke="#3d2b1f" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+      <!-- Big tears streaming -->
+      <path d="M49 56 Q47 65 45 72" stroke="#7ec8f5" stroke-width="4" fill="none" stroke-linecap="round"/>
+      <path d="M81 56 Q83 65 85 72" stroke="#7ec8f5" stroke-width="4" fill="none" stroke-linecap="round"/>
+      <ellipse cx="45" cy="63" rx="9" ry="6" fill="#ffb3c1" opacity="0.9"/>
+      <ellipse cx="85" cy="63" rx="9" ry="6" fill="#ffb3c1" opacity="0.9"/>
+      <ellipse cx="65" cy="66" rx="4" ry="2.5" fill="#c97b63"/>
+      <path d="M55 76 Q65 68 75 76" stroke="#c97b63" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+      <path d="M46 44 Q52 39 58 44" stroke="#3d2b1f" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+      <path d="M72 44 Q78 39 84 44" stroke="#3d2b1f" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+      <rect x="40" y="95" width="50" height="35" rx="4" fill="#7ec8e3"/>
+      <rect x="40" y="95" width="5" height="35" rx="2" fill="#5ba3bd"/>
+      <ellipse cx="46" cy="94" rx="9" ry="7" fill="#f5e6d3"/>
+      <ellipse cx="84" cy="94" rx="9" ry="7" fill="#f5e6d3"/>
+    </svg>`,
+    plead: `<svg class="mascot-svg" viewBox="0 0 130 130" fill="none">
+      <ellipse cx="65" cy="85" rx="38" ry="32" fill="#f5e6d3"/>
+      <circle cx="65" cy="55" r="35" fill="#f5e6d3"/>
+      <circle cx="35" cy="28" r="14" fill="#f5e6d3"/>
+      <circle cx="95" cy="28" r="14" fill="#f5e6d3"/>
+      <circle cx="35" cy="28" r="8" fill="#f0c8b0"/>
+      <circle cx="95" cy="28" r="8" fill="#f0c8b0"/>
+      <!-- Big puppy eyes -->
+      <ellipse cx="52" cy="54" rx="9" ry="10" fill="#7ec8f5" opacity="0.5"/>
+      <ellipse cx="78" cy="54" rx="9" ry="10" fill="#7ec8f5" opacity="0.5"/>
+      <ellipse cx="52" cy="54" rx="7" ry="8" fill="#3d2b1f"/>
+      <ellipse cx="78" cy="54" rx="7" ry="8" fill="#3d2b1f"/>
+      <circle cx="55" cy="51" r="3" fill="white"/>
+      <circle cx="81" cy="51" r="3" fill="white"/>
+      <circle cx="57" cy="53" r="1.5" fill="white" opacity="0.6"/>
+      <ellipse cx="45" cy="66" rx="10" ry="7" fill="#ffb3c1" opacity="0.9"/>
+      <ellipse cx="85" cy="66" rx="10" ry="7" fill="#ffb3c1" opacity="0.9"/>
+      <ellipse cx="65" cy="68" rx="4" ry="3" fill="#c97b63"/>
+      <path d="M56 74 Q65 70 74 74" stroke="#c97b63" stroke-width="2" fill="none" stroke-linecap="round"/>
+      <!-- Joined hands pleading -->
+      <ellipse cx="65" cy="97" rx="15" ry="10" fill="#f5e6d3"/>
+      <ellipse cx="58" cy="95" rx="9" ry="7" fill="#f0c8b0"/>
+      <ellipse cx="72" cy="95" rx="9" ry="7" fill="#f0c8b0"/>
+    </svg>`
+  };
+
+  function getMascotForCount(count) {
+    if (count === 0) return mascotFaces.normal;
+    if (count === 1) return mascotFaces.sad;
+    if (count <= 3) return mascotFaces.cry;
+    return mascotFaces.plead;
+  }
+
+  function handleYes() {
+    // Grow yes button each time no is clicked
+    yesScale = Math.min(yesScale + 0.15, 2.5);
+    document.getElementById('yesBtn').style.transform = `scale(${yesScale})`;
+
+    // Show success
+    document.getElementById('questionScreen').style.display = 'none';
+    const ss = document.getElementById('successScreen');
+    ss.classList.add('show');
+    spawnConfetti();
+  }
+
+  function handleNo() {
+    noClickCount++;
+
+    // Grow yes button
+    yesScale = Math.min(yesScale + 0.2, 2.8);
+    const yesBtn = document.getElementById('yesBtn');
+    yesBtn.style.transition = 'transform 0.3s ease';
+    yesBtn.style.transform = `scale(${yesScale})`;
+
+    const noBtn = document.getElementById('noBtn');
+
+    // Wobble mascot
+    const mascotEl = document.getElementById('mascot');
+    mascotEl.classList.remove('wobble');
+    void mascotEl.offsetWidth;
+    mascotEl.classList.add('wobble');
+
+    // Update mascot face
+    mascotEl.innerHTML = getMascotForCount(noClickCount);
+
+    // Handle different stages
+    if (noClickCount < noTexts.length) {
+      noBtn.textContent = noTexts[noClickCount];
+    }
+
+    // Stage 6 = "Last chance" - start moving
+    if (noClickCount >= 6) {
+      makeNoButtonMove(noBtn);
+    }
+  }
+
+  function makeNoButtonMove(noBtn) {
+    moveTrials++;
+
+    if (moveTrials > maxMoveTrials) {
+      // Disappear after 2 trials
+      noBtn.style.transition = 'opacity 0.5s ease, transform 0.5s ease';
+      noBtn.style.opacity = '0';
+      noBtn.style.transform = 'scale(0)';
+      setTimeout(() => {
+        noBtn.style.display = 'none';
+        // Grow yes even bigger
+        yesScale = Math.min(yesScale + 0.3, 3);
+        document.getElementById('yesBtn').style.transform = `scale(${yesScale})`;
+      }, 500);
+      return;
+    }
+
+    // Make it float around screen randomly
+    noBtn.classList.add('moving');
+    noBtn.style.position = 'fixed';
+    noBtn.style.zIndex = '9999';
+
+    let moveCount = 0;
+    const maxMoves = 4;
+
+    function moveRandom() {
+      if (moveCount >= maxMoves) {
+        // Return to normal position temporarily
+        noBtn.classList.remove('moving');
+        noBtn.style.position = '';
+        noBtn.style.left = '';
+        noBtn.style.top = '';
+        return;
+      }
+      moveCount++;
+      const x = Math.random() * (window.innerWidth - 200);
+      const y = Math.random() * (window.innerHeight - 80);
+      noBtn.style.left = x + 'px';
+      noBtn.style.top = y + 'px';
+      setTimeout(moveRandom, 500);
+    }
+
+    moveRandom();
+  }
+
+  function spawnConfetti() {
+    const colors = ['#ff6b9d', '#ffd93d', '#6bcb77', '#4d96ff', '#ff6b6b', '#c77dff'];
+    for (let i = 0; i < 60; i++) {
+      setTimeout(() => {
+        const el = document.createElement('div');
+        el.className = 'confetti-particle';
+        el.style.background = colors[Math.floor(Math.random() * colors.length)];
+        el.style.left = Math.random() * 100 + 'vw';
+        el.style.top = '-20px';
+        el.style.width = (8 + Math.random() * 10) + 'px';
+        el.style.height = (8 + Math.random() * 10) + 'px';
+        el.style.animationDuration = (1.5 + Math.random() * 2) + 's';
+        el.style.animationDelay = Math.random() * 0.5 + 's';
+        document.body.appendChild(el);
+        setTimeout(() => el.remove(), 3500);
+      }, i * 30);
+    }
+  }
+
+  // Generate background hearts
+  function initBgHearts() {
+    const container = document.getElementById('bgHearts');
+    const emojis = ['💕', '📚', '✨', '💫', '🌸', '💖', '⭐'];
+    for (let i = 0; i < 18; i++) {
+      const el = document.createElement('div');
+      el.className = 'bg-heart';
+      el.textContent = emojis[Math.floor(Math.random() * emojis.length)];
+      el.style.left = Math.random() * 100 + 'vw';
+      el.style.animationDuration = (8 + Math.random() * 10) + 's';
+      el.style.animationDelay = -(Math.random() * 15) + 's';
+      el.style.fontSize = (14 + Math.random() * 16) + 'px';
+      container.appendChild(el);
+    }
+  }
+
+  // Generate card sparkles
+  function initSparkles() {
+    const container = document.getElementById('sparkles');
+    for (let i = 0; i < 12; i++) {
+      const el = document.createElement('div');
+      el.className = 'sparkle';
+      el.style.left = Math.random() * 100 + '%';
+      el.style.top = Math.random() * 100 + '%';
+      el.style.animationDelay = Math.random() * 2 + 's';
+      el.style.animationDuration = (1.5 + Math.random()) + 's';
+      container.appendChild(el);
+    }
+  }
+
+  initBgHearts();
+  initSparkles();
+</script>
+</body>
+</html>
